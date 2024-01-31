@@ -8,7 +8,7 @@ use crossterm::{
     style::{Color, SetBackgroundColor, SetForegroundColor, SetUnderlineColor},
     QueueableCommand,
 };
-use glam::{uvec2, IVec2, U16Vec2, UVec2};
+use glam::{ivec2, IVec2, U16Vec2, UVec2};
 use unicode_width::UnicodeWidthStr;
 
 use crate::rect::TermRect;
@@ -98,7 +98,9 @@ impl TermSlice {
     }
 
     pub fn move_cursor(&mut self, pos: impl Into<IVec2>) -> &mut Self {
-        let pos = Into::<IVec2>::into(pos).try_into().unwrap_or(U16Vec2::MAX);
+        let pos = (Into::<IVec2>::into(pos) + self.pos())
+            .try_into()
+            .unwrap_or(U16Vec2::MAX);
         self.stdout.queue(MoveTo(pos.x, pos.y)).ok();
         self
     }
@@ -189,9 +191,9 @@ impl TermSlice {
         self
     }
 
-    pub fn cursor_pos(&mut self) -> UVec2 {
+    pub fn cursor_pos(&mut self) -> IVec2 {
         let pos = cursor::position().unwrap_or((u16::MAX, u16::MAX));
-        uvec2(pos.0 as u32, pos.1 as u32)
+        ivec2(pos.0 as i32 - self.x(), pos.1 as i32 - self.y())
     }
 }
 
