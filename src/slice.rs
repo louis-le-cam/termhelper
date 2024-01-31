@@ -28,6 +28,11 @@ impl TermSlice {
     }
 
     #[must_use]
+    pub fn slice(&self, rect: TermRect) -> Self {
+        Self::new(self.rect, rect)
+    }
+
+    #[must_use]
     pub fn rect(&self) -> TermRect {
         self.rect
     }
