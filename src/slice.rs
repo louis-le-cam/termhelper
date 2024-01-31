@@ -98,9 +98,9 @@ impl TermSlice {
     }
 
     pub fn move_cursor(&mut self, pos: impl Into<IVec2>) -> &mut Self {
-        let pos = (Into::<IVec2>::into(pos) + self.pos())
-            .try_into()
-            .unwrap_or(U16Vec2::MAX);
+        let Ok(pos): Result<U16Vec2, _> = (Into::<IVec2>::into(pos) + self.pos()).try_into() else {
+            return self;
+        };
         self.stdout.queue(MoveTo(pos.x, pos.y)).ok();
         self
     }
@@ -149,9 +149,9 @@ impl TermSlice {
     }
 
     pub fn write_to(&mut self, pos: impl Into<IVec2>, display: impl Display) -> &mut Self {
-        let pos = (Into::<IVec2>::into(pos) + self.pos())
-            .try_into()
-            .unwrap_or(U16Vec2::MAX);
+        let Ok(pos): Result<U16Vec2, _> = (Into::<IVec2>::into(pos) + self.pos()).try_into() else {
+            return self;
+        };
         self.stdout.queue(MoveTo(pos.x, pos.y)).ok();
 
         if !((self.y() as i64)..(self.y() as i64 + self.height() as i64)).contains(&(pos.y as i64))
