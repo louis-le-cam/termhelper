@@ -140,7 +140,45 @@ impl TermSlice {
     }
 
     pub fn write_to(&mut self, pos: impl Into<IVec2>, display: impl Display) -> &mut Self {
-        self.move_cursor(pos).write(display)
+        let pos = Into::<IVec2>::into(pos).try_into().unwrap_or(U16Vec2::MAX);
+        self.stdout.queue(MoveTo(pos.x, pos.y)).ok();
+
+        if (pos.y as i64) < self.y() as i64 {
+            return self;
+        }
+
+        let string = display.to_string();
+        let mut string = string.as_str();
+
+        let columns_to_remove_start = self.x() as i64 - pos.x as i64;
+        let columns_to_remove_end =
+            (pos.x as i64 + string.width() as i64) - (self.x() as i64 + self.width() as i64);
+
+        let string_width = string.width();
+
+        if let Ok(columns_to_remove_start) = usize::try_from(columns_to_remove_start) {
+            while string_width - string.width() < columns_to_remove_start {
+                let Some((first_index, _)) = string.char_indices().next() else {
+                    return self;
+                };
+                string = &string[first_index..];
+            }
+        }
+
+        if let Ok(columns_to_remove_end) = usize::try_from(columns_to_remove_end) {
+            while string_width - string.width() < columns_to_remove_end {
+                let Some((last_index, _)) = string.char_indices().last() else {
+                    return self;
+                };
+                string = &string[..last_index];
+            }
+        }
+
+        if !string.is_empty() {
+            self.stdout.write_all(string.as_bytes()).ok();
+        }
+
+        self
     }
 
     pub fn cursor_pos(&mut self) -> UVec2 {
