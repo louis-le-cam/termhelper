@@ -101,7 +101,7 @@ impl TermSlice {
     pub fn write(&mut self, display: impl Display) -> &mut Self {
         let cursor_pos = self.cursor_pos();
 
-        if ((self.y() as i64)..(self.y() as i64 + self.height() as i64))
+        if !((self.y() as i64)..(self.y() as i64 + self.height() as i64))
             .contains(&(cursor_pos.y as i64))
         {
             return self;
@@ -145,7 +145,8 @@ impl TermSlice {
         let pos = Into::<IVec2>::into(pos).try_into().unwrap_or(U16Vec2::MAX);
         self.stdout.queue(MoveTo(pos.x, pos.y)).ok();
 
-        if ((self.y() as i64)..(self.y() as i64 + self.height() as i64)).contains(&(pos.y as i64)) {
+        if !((self.y() as i64)..(self.y() as i64 + self.height() as i64)).contains(&(pos.y as i64))
+        {
             return self;
         }
 
